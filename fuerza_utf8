@@ -1,0 +1,46 @@
+#!/usr/bin/php
+<?php
+
+/**
+ * @author   "Santiago Ramos" <sramos@sitiodistinto.net>
+ * @version  0.1
+ * @license  GPLv3 
+  */
+
+include_once dirname(__FILE__) . '/Encoding.php';
+
+  #Obtiene el nombre del fichero origen:
+  if (count($argv) < 2) {
+    print "\nSintaxis: fuerza_utf8 BBDD.sql\n\n\n";
+    exit;
+  } else {
+    $nom_fich=$argv[1];
+  }
+
+  $file_input=fopen($nom_fich,"rb") or exit("ERROR: Fue imposible leer ".$nom_fich."\n\n");
+  $file_output=fopen($nom_fich.".utf8","wb") or exit("ERROR: Fue imposible escribir ".$nom_fich.".utf8\n\n");
+
+  while(!feof($file_input)) {
+    $line = fgets($file_input);
+    // Sustituimos los 'latin1_swedish_ci' por 'utf8_general_ci'
+    $line = preg_replace(array('/latin1_swedish_ci/'),array('utf8_general_ci'),$line);
+    // Sustituimos los 'latin1' por 'utf8'
+    $line = preg_replace(array('/latin1/'),array('utf8'),$line);
+    // Arreglamos textos reencodeados
+    $utf8_line = utf8_reencode($line);
+    fwrite($file_output, $utf8_line); 
+  }
+
+  fclose($file_input);
+  fclose($file_output);
+  print "\nGenerado fichero ".$nom_fich.".utf8\n\n";
+
+  function utf8_reencode($string) {
+    if ($string) {
+      return Encoding::fixUTF8(utf8_encode(Encoding::UTF8FixWin1252Chars($string)));
+    } else {
+      return NULL;
+    }
+  }
+
+?>
